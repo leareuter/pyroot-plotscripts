@@ -640,6 +640,9 @@ plots64=[
 
 #plots+=plots64+plots63+plots62+plots54+plots53+plots44+plots43+plots42+plots52
 plots=plots64+plots63+plots62+plots54+plots53+plots44+plots43+plots42+plots52
+print("plots[0]: ", plots[0])
+print("plots[1]: ",plots[1])
+raw_input("continue?")
 
 #plots+=bdtplots
 #plots=plots44
@@ -657,7 +660,8 @@ if not os.path.exists(outputpath[:-4]+'_syst.root') or not askYesNo('reuse syste
     renameHistos(outputpath,outputpath[:-4]+'_syst.root',allsystnames,False)
 lll=createLLL_fromSuperHistoFileSyst(outputpath[:-4]+'_syst.root',samples[1:],plots,errorSystnames)
 
-
+print("listOfHistoLists[0]:", listOfHistoLists[0])
+raw_input("continue?")
 labels=[plot.label for plot in plots]
 lolT=transposeLOL(listOfHistoLists)
 plotDataMCanWsyst(listOfHistoListsData,transposeLOL(lolT[1:]),samples[1:],lolT[0],samples[0],-1,name,[[lll,3354,ROOT.kBlack,True]],False,labels,True,plotBlinded)
