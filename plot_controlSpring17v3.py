@@ -640,9 +640,9 @@ plots64=[
 
 #plots+=plots64+plots63+plots62+plots54+plots53+plots44+plots43+plots42+plots52
 plots=plots64+plots63+plots62+plots54+plots53+plots44+plots43+plots42+plots52
-print("plots[0]: ", plots[0])
-print("plots[1]: ",plots[1])
-raw_input("continue?")
+if len(sys.argv) > 1 :
+    plots=[plots[int(sys.argv[1])]]
+print plots
 
 #plots+=bdtplots
 #plots=plots44
@@ -651,20 +651,29 @@ raw_input("continue?")
 #print name,2000000,plots,samples+samples_data,[''],['1.'],weightsystnames, systweights
 #outputpath=plotParallel(name,1000000,plots,samples+samples_data+systsamples,[''],['1.'],weightsystnames, systweights,additionalvariables,[],"",othersystnames)
 
-outputpath=plotParallel(name,1000000,plots,samples+samples_data+systsamples,[''],['1.'],weightsystnames, systweights,additionalvariables,[],"/nfs/dust/cms/user/kelmorab/plotscriptsSpring17/pyroot-plotscripts/treejson_Spring17v2_moreBKGs.json",othersystnames)
+if len(sys.argv) == 1 :                      #if some option is given plotParallelStep will be skipped
+    outputpath=plotParallel(name,1000000,plots,samples+samples_data+systsamples,[''],['1.'],weightsystnames, systweights,additionalvariables,[],"/nfs/dust/cms/user/kelmorab/plotscriptsSpring17/pyroot-plotscripts/treejson_Spring17v2_moreBKGs.json",othersystnames)
+else:
+    workdir=os.getcwd()+'/workdir/'+name
+    outputpath=workdir+'/output.root'
 
 # plot dataMC comparison
 listOfHistoLists=createHistoLists_fromSuperHistoFile(outputpath,samples,plots,1)
 listOfHistoListsData=createHistoLists_fromSuperHistoFile(outputpath,samples_data,plots,1)
-if not os.path.exists(outputpath[:-4]+'_syst.root') or not askYesNo('reuse systematic histofile?'):
-    renameHistos(outputpath,outputpath[:-4]+'_syst.root',allsystnames,False)
+
+if len(sys.argv) == 1 :                      #if some option is given old systematic histo file will be used      
+    if not os.path.exists(outputpath[:-4]+'_syst.root') or not askYesNo('reuse systematic histofile?'):
+        renameHistos(outputpath,outputpath[:-4]+'_syst.root',allsystnames,False)
 lll=createLLL_fromSuperHistoFileSyst(outputpath[:-4]+'_syst.root',samples[1:],plots,errorSystnames)
 
-print("listOfHistoLists[0]:", listOfHistoLists[0])
-raw_input("continue?")
+
 labels=[plot.label for plot in plots]
 lolT=transposeLOL(listOfHistoLists)
-plotDataMCanWsyst(listOfHistoListsData,transposeLOL(lolT[1:]),samples[1:],lolT[0],samples[0],-1,name,[[lll,3354,ROOT.kBlack,True]],False,labels,True,plotBlinded)
+
+if len(sys.argv) == 1 :
+    DrawParallel(plots,os.path.realpath(__file__))
+if len(sys.argv) > 1 :
+    plotDataMCanWsyst(listOfHistoListsData,transposeLOL(lolT[1:]),samples[1:],lolT[0],samples[0],-1,name,[[lll,3354,ROOT.kBlack,True]],False,labels,True,plotBlinded)
 
 exit(0)
 

@@ -5,7 +5,8 @@ from collections import namedtuple
 import glob
 import subprocess
 import os
-import scriptgenerator
+#import scriptgenerator  #neccessary?
+from scriptgeneratorMEMDBCSV import *
 import re
 import xml.etree.ElementTree as ET
 import CMS_lumi
@@ -955,14 +956,14 @@ def createHistoLists_fromSuperHistoFile(path,samples,plots,rebin=1,catnames=[""]
         for c in catnames:
             for plot in plots:
                 key=sample.nick+'_'+c+plot.name
-                #print key
+                # print key
 #                print key, sample.nick, c, plot.name
                 o=f.Get(key)
-                #print o
+                # print o
                 if isinstance(o,ROOT.TH1) and not isinstance(o,ROOT.TH2):
                     o.Rebin(rebin)
                     histoList.append(o.Clone())
-#                    print "ok", histoList[-1], len(histoList)
+                    # print "ok", histoList[-1], len(histoList)
                 if DoTwoDim and isinstance(o,ROOT.TH2):
 		    #print "2D"
 		    histoList.append(o.Clone())
@@ -2844,3 +2845,5 @@ def plotDataMCanWsystCustomBinLabels(listOfHistoListsData,listOfHistoLists,sampl
 #    print len(canvases)
     printCanvases(canvases,name)
     writeObjects(canvases,name)
+
+

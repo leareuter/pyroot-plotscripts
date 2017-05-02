@@ -1549,6 +1549,53 @@ def createProgram(scriptname,plots,samples,catnames=[""],catselections=["1"],sys
   f.write(script)
   f.close()
 
+def DrawParallel(ListOfPlots,PathToSelf):
+    ListofScripts=[]
+    print "Creating Scripts for Parallel Drawing"
+    for iPlot, Plot in enumerate(ListOfPlots):
+        ListofScripts.append(createSingleDrawScript(iPlot,Plot,PathToSelf))
+
+    print "Submitting ", len(ListofScripts), " DrawScripts"
+    # print ListofScripts
+    # jobids=submitToNAF(["DrawScripts/DrawParallel0.sh"])
+    jobids=submitToNAF(ListofScripts)
+    do_qstat(jobids)
+
+
+def createSingleDrawScript(iPlot,Plot,PathToSelf):
+  # print "still needs to be implemented"
+  cmsswpath=os.environ['CMSSW_BASE']
+  script="#!/bin/bash \n"
+  if cmsswpath!='':
+    script+="export VO_CMS_SW_DIR=/cvmfs/cms.cern.ch \n"
+    script+="source $VO_CMS_SW_DIR/cmsset_default.sh \n"
+    script+="export SCRAM_ARCH="+os.environ['SCRAM_ARCH']+"\n"
+    script+='cd '+cmsswpath+'/src\neval `scram runtime -sh`\n'
+    script+='cd - \n'
+    script+='cd ..\n'
+  # script+='export NUMBEROFPLOT ='+str(iPlot)+'\n'
+  script+='python '+PathToSelf+" "+str(iPlot)+' noPlotParallel\n'
+
+
+  scriptname='DrawParallel'+str(iPlot)+'.sh'
+
+  path = os.getcwd()+"/DrawScripts" 
+  if not os.path.exists(path):
+    os.makedirs(path)
+  os.chdir(path)
+  
+  f=open(scriptname,'w')
+  f.write(script)
+  f.close()
+  st = os.stat(scriptname)
+  os.chmod(scriptname, st.st_mode | stat.S_IEXEC)
+  os.chdir(os.path.dirname(PathToSelf))
+
+  PathToShellScript=path+scriptname
+  # return PathToShellScript
+  return "DrawScripts/"+scriptname
+
+
 
 def createScript(scriptname,programpath,processname,filenames,outfilename,maxevents,skipevents,cmsswpath,suffix):
   script="#!/bin/bash \n"
@@ -1738,6 +1785,8 @@ def check_jobs(scripts,outputs,nentries):
     if n!=processed_entries:
       failed_jobs.append(script)
   return failed_jobs
+
+
 
 # the dataBases should be defined as follows e.g. [[memDB,path],[blrDB,path]]
 def plotParallel(name,maxevents,plots,samples,catnames=[""],catselections=["1"],systnames=[""],systweights=["1"],additionalvariables=[],dataBases=[],treeInformationJsonFile="",otherSystnames=[]):
@@ -1973,7 +2022,9 @@ renameHistosParallel(filename,systematics,False)
   scrfile=open(scriptname+"_rename.py","w")
   scrfile.write(script)
   scrfile.close()
+
+
     
     
-    
+ 
     
