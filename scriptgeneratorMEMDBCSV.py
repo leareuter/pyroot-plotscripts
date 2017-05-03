@@ -1551,9 +1551,16 @@ def createProgram(scriptname,plots,samples,catnames=[""],catselections=["1"],sys
 
 def DrawParallel(ListOfPlots,PathToSelf):
     ListofScripts=[]
+    workdir=os.getcwd()+'/workdir/DrawScripts/'
+    # create output folders
+    print 'creating output folders'
+    scriptsfolder=workdir
+    if not os.path.exists(scriptsfolder):
+      os.makedirs(scriptsfolder)
+
     print "Creating Scripts for Parallel Drawing"
     for iPlot, Plot in enumerate(ListOfPlots):
-        ListofScripts.append(createSingleDrawScript(iPlot,Plot,PathToSelf))
+        ListofScripts.append(createSingleDrawScript(iPlot,Plot,PathToSelf,scriptsfolder))
 
     print "Submitting ", len(ListofScripts), " DrawScripts"
     # print ListofScripts
@@ -1562,7 +1569,7 @@ def DrawParallel(ListOfPlots,PathToSelf):
     do_qstat(jobids)
 
 
-def createSingleDrawScript(iPlot,Plot,PathToSelf):
+def createSingleDrawScript(iPlot,Plot,PathToSelf,scriptsfolder):
   # print "still needs to be implemented"
   cmsswpath=os.environ['CMSSW_BASE']
   script="#!/bin/bash \n"
@@ -1570,19 +1577,20 @@ def createSingleDrawScript(iPlot,Plot,PathToSelf):
     script+="export VO_CMS_SW_DIR=/cvmfs/cms.cern.ch \n"
     script+="source $VO_CMS_SW_DIR/cmsset_default.sh \n"
     script+="export SCRAM_ARCH="+os.environ['SCRAM_ARCH']+"\n"
+    script+='export OUTFILENAME="'+"plot" +str(iPlot)+'"\n'
     script+='cd '+cmsswpath+'/src\neval `scram runtime -sh`\n'
     script+='cd - \n'
-    script+='cd ..\n'
   # script+='export NUMBEROFPLOT ='+str(iPlot)+'\n'
   script+='python '+PathToSelf+" "+str(iPlot)+' noPlotParallel\n'
+  # script+="mv *.pdf " +os.getcwd()+"/plot"+str(iPlot)+".pdf\n"
 
 
-  scriptname='DrawParallel'+str(iPlot)+'.sh'
+  scriptname=scriptsfolder+'DrawParallel'+str(iPlot)+'.sh'
 
-  path = os.getcwd()+"/DrawScripts" 
-  if not os.path.exists(path):
-    os.makedirs(path)
-  os.chdir(path)
+  # path = os.getcwd()+"/DrawScripts" 
+  # if not os.path.exists(path):
+  #   os.makedirs(path)
+  # os.chdir(path)
   
   f=open(scriptname,'w')
   f.write(script)
@@ -1591,10 +1599,10 @@ def createSingleDrawScript(iPlot,Plot,PathToSelf):
   os.chmod(scriptname, st.st_mode | stat.S_IEXEC)
   os.chdir(os.path.dirname(PathToSelf))
 
-  PathToShellScript=path+scriptname
+  # PathToShellScript=path+scriptname
   # return PathToShellScript
-  return "DrawScripts/"+scriptname
-
+  # return "DrawScripts/"+scriptname
+  return scriptname
 
 
 def createScript(scriptname,programpath,processname,filenames,outfilename,maxevents,skipevents,cmsswpath,suffix):
