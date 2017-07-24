@@ -9,6 +9,7 @@ import scriptgenerator
 import re
 import xml.etree.ElementTree as ET
 import CMS_lumi
+import array
 
 ROOT.gStyle.SetPaintTextFormat("4.2f");
 ROOT.gROOT.SetBatch(True)
@@ -99,7 +100,7 @@ class Sample:
 
 
 class Plot:
-    def __init__(self,histo, variable='', selection='',label=''):
+    def __init__(self,histo, variable='', selection='',label='',varbins=[]):
         if isinstance(histo,ROOT.TH1):
             self.histo=histo
             self.name=histo.GetName()
@@ -112,6 +113,13 @@ class Plot:
             self.variable=variable
         self.selection=selection
         self.label=label
+        if len(varbins)!=0:
+            print("using variable Bins")
+            varbinsarray = array.array('d', varbins)
+            histo.SetBins(len(varbins)-1, varbinsarray) 
+            print("using "+str(histo.GetNbinsX())+" bins")
+
+        
 
 class TwoDimPlot:
     def __init__(self,histo, variable1='', variable2='', selection='',label=''):
@@ -164,7 +172,7 @@ class Cateogry:
         self.name=name
         self.title=title
         self.selection=selection
-
+    
 
 
 # sets up the style of a histo and its axes
@@ -699,6 +707,27 @@ def roundNumber(x):
         y=2
     y*=(10**loga)
     return y
+
+def variableBinning(plot,binedges):
+    ROOT.gDirectory.cd('PyROOT:/')
+    h=plot.histo
+    name=h.GetName()
+    title=h.GetTitle()
+    nbins=h.GetNbinsX()
+    project_name=name+'_temp'
+    project_histo=ROOT.gDirectory.Get(project_name)
+    project_var=plot.variable
+
+    varbinsarray = array.array('d', binedges)
+    h.SetBins(len(binedges)-1, varbinsarray) 
+    print("using "+str(h.GetNbinsX())+" bins")
+    nbins=len(binedges)-1
+
+
+    h.SetDirectory(0)
+    newhisto=ROOT.TH1F(name+"_varbinned",title,nbins,varbinsarray)
+    newplot=Plot(newhisto,project_var,plot.selection)
+    return newplot
 
 # changes range of histos in plot to reasonable values, returns plot
 def setPlotRangeAuto(plots,samples,treename='MVATree',weightexpression='Weight',maxentries=100000):
